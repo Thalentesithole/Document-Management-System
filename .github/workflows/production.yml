@@ -1,0 +1,133 @@
+name: Production CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PYTHON_VERSION: "3.12"
+  NODE_VERSION: "20"
+
+jobs:
+  lint-and-scan:
+    name: Lint & Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies (Backend)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8 bandit
+
+      - name: Run Flake8 (Linting)
+        run: flake8 backend/app --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Run Bandit (Security Scan)
+        run: bandit -r backend/app -ll -ii
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies (Frontend)
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: NPM Audit (Security Scan)
+        working-directory: ./frontend
+        run: npm audit --audit-level=high
+
+  test:
+    name: Unit & Integration Tests
+    needs: lint-and-scan
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: dms_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install test dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov httpx
+
+      - name: Run Pytest
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/dms_test
+          REDIS_URL: redis://localhost:6379/0
+          ENVIRONMENT: testing
+          JWT_SECRET_KEY: test_secret_key
+          GEMINI_API_KEY: test_gemini_key
+        run: |
+          cd backend
+          pytest tests/ -v --cov=app --cov-report=xml
+
+  build-and-deploy:
+    name: Build & Deploy
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy Frontend to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./frontend
+
+      - name: Deploy Backend to Render
+        # Example using a webhook for Render deployment
+        run: |
+          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+
+      - name: Post-Deployment Verification
+        run: |
+          echo "Waiting for deployment to propagate..."
+          sleep 30
+          curl -f -s https://api.yourdomain.com/health || exit 1
+          curl -f -s https://app.yourdomain.com || exit 1
+          echo "Deployment verified successfully."

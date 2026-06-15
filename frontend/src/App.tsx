@@ -1,0 +1,56 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Toaster } from 'sonner'
+import { AppShell } from '@/layouts/AppShell'
+
+// Pages
+import Dashboard from '@/pages/Dashboard'
+import Login from '@/pages/Login'
+import Upload from '@/pages/Upload'
+import Documents from '@/pages/Documents'
+import ForgotPassword from '@/pages/ForgotPassword'
+import ResetPassword from '@/pages/ResetPassword'
+import Profile from '@/pages/Profile'
+
+import Reports from '@/pages/Reports'
+
+// Auth Context
+import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+
+const queryClient = new QueryClient()
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth()
+  if (loading) return <div className="flex h-screen items-center justify-center text-white bg-slate-950">Loading...</div>
+  if (!user) return <Navigate to="/login" />
+  return <>{children}</>
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            
+            <Route path="/" element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
+              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="upload" element={<Upload />} />
+              <Route path="documents" element={<Documents />} />
+              <Route path="reports" element={<Reports />} />
+              <Route path="profile" element={<Profile />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+        <Toaster position="top-right" />
+      </AuthProvider>
+    </QueryClientProvider>
+  )
+}
+
+
+export default App

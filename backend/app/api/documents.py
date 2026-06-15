@@ -17,7 +17,7 @@ router = APIRouter()
 @router.post("/upload")
 async def upload_document(
     file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_roles([RoleEnum.admin, RoleEnum.reviewer])),
     db: AsyncSession = Depends(get_db)
 ):
     if not file.filename.lower().endswith(('.pdf', '.png', '.jpg', '.jpeg')):
@@ -45,6 +45,8 @@ async def upload_document(
                 entity_type="Document",
                 entity_id=str(existing_doc.id),
                 user_id=current_user.id,
+                user_email=current_user.email,
+                user_role=current_user.role.value,
                 new_value={
                     "attempted_filename": file.filename,
                     "matched_document_id": str(existing_doc.id),
@@ -123,7 +125,9 @@ async def upload_document(
         action="upload",
         entity_type="Document",
         entity_id=str(document.id),
-        user_id=current_user.id
+        user_id=current_user.id,
+        user_email=current_user.email,
+        user_role=current_user.role.value
     )
     
     # Trigger Extraction Agent

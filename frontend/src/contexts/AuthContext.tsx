@@ -13,9 +13,12 @@ interface AuthContextType {
   user: User | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
-  register: (email: string, password: string, fullName: string) => Promise<void>
+  register: (email: string, password: string, fullName: string, role: string) => Promise<void>
   logout: () => void
   updateProfile: (fullName?: string, password?: string) => Promise<void>
+  isAdmin: boolean
+  isReviewer: boolean
+  isManager: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -72,11 +75,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userData)
   }
 
-  const register = async (email: string, password: string, fullName: string) => {
+  const register = async (email: string, password: string, fullName: string, role: string) => {
     const response = await api.post('/auth/register', {
       email,
       password,
       full_name: fullName,
+      role,
     })
 
     const { access_token } = response.data
@@ -105,8 +109,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userData)
   }
 
+  const isAdmin = user?.role === 'admin'
+  const isReviewer = user?.role === 'reviewer'
+  const isManager = user?.role === 'manager'
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile, isAdmin, isReviewer, isManager }}>
       {children}
     </AuthContext.Provider>
   )

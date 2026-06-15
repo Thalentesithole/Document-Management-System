@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.core.database import get_db
 from app.core.security import verify_password, get_password_hash, create_access_token
-from app.models.user import User
+from app.models.user import User, RoleEnum
+from app.services.audit import AuditService
 from pydantic import BaseModel, EmailStr
 
 router = APIRouter()
@@ -14,6 +15,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     full_name: str = None
+    role: RoleEnum
 
 class Token(BaseModel):
     access_token: str
@@ -28,11 +30,22 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
     user = User(
         email=user_in.email,
         password_hash=get_password_hash(user_in.password),
-        full_name=user_in.full_name
+        full_name=user_in.full_name,
+        role=user_in.role
     )
     db.add(user)
     await db.commit()
     await db.refresh(user)
+    
+    await AuditService.log_action(
+        db=db,
+        action="user_registered",
+        entity_type="User",
+        entity_id=str(user.id),
+        user_id=user.id,
+        user_email=user.email,
+        user_role=user.role.value
+    )
     
     access_token = create_access_token(subject=user.id)
     return {"access_token": access_token, "token_type": "bearer"}
@@ -43,6 +56,16 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
     user = result.scalar_one_or_none()
     if not user or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(status_code=400, detail="Incorrect email or password")
+        
+    await AuditService.log_action(
+        db=db,
+        action="user_logged_in",
+        entity_type="User",
+        entity_id=str(user.id),
+        user_id=user.id,
+        user_email=user.email,
+        user_role=user.role.value
+    )
         
     access_token = create_access_token(subject=user.id)
     return {"access_token": access_token, "token_type": "bearer"}

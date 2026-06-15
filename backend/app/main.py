@@ -4,7 +4,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.core.config import settings
 from app.core.rate_limit import limiter
-from app.api import auth, documents, workflow, reports, insights
+from app.api import auth, documents, workflow, reports, insights, audit
 from app.tasks.celery_app import celery_app
 import sentry_sdk
 
@@ -37,6 +37,7 @@ app.include_router(documents.router, prefix=f"{settings.API_V1_STR}/documents", 
 app.include_router(workflow.router, prefix=f"{settings.API_V1_STR}/workflow", tags=["workflow"])
 app.include_router(reports.router, prefix=f"{settings.API_V1_STR}/reports", tags=["reports"])
 app.include_router(insights.router, prefix=f"{settings.API_V1_STR}/insights", tags=["insights"])
+app.include_router(audit.router, prefix=f"{settings.API_V1_STR}/audit", tags=["audit"])
 
 @app.get("/health")
 async def health_check():

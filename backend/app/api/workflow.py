@@ -4,6 +4,7 @@ from app.core.database import get_db
 from app.models.user import User, RoleEnum
 from app.api.deps import get_current_user, require_roles
 from app.agents.workflow_agent import WorkflowAgent
+from app.services.audit import AuditService
 from pydantic import BaseModel
 import uuid
 
@@ -16,11 +17,23 @@ class ActionRequest(BaseModel):
 async def approve_document(
     id: uuid.UUID,
     payload: ActionRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_roles([RoleEnum.admin, RoleEnum.reviewer, RoleEnum.manager])),
     db: AsyncSession = Depends(get_db)
 ):
     try:
         document = await WorkflowAgent.process_action(db, id, current_user.id, "approve", payload.comments)
+        
+        await AuditService.log_action(
+            db=db,
+            action="workflow_approve",
+            entity_type="Document",
+            entity_id=str(id),
+            user_id=current_user.id,
+            user_email=current_user.email,
+            user_role=current_user.role.value,
+            new_value={"comments": payload.comments, "new_status": document.status.value}
+        )
+        
         return {"message": "Document approved", "status": document.status}
     except HTTPException as e:
         raise e
@@ -31,11 +44,23 @@ async def approve_document(
 async def reject_document(
     id: uuid.UUID,
     payload: ActionRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_roles([RoleEnum.admin, RoleEnum.manager])),
     db: AsyncSession = Depends(get_db)
 ):
     try:
         document = await WorkflowAgent.process_action(db, id, current_user.id, "reject", payload.comments)
+        
+        await AuditService.log_action(
+            db=db,
+            action="workflow_reject",
+            entity_type="Document",
+            entity_id=str(id),
+            user_id=current_user.id,
+            user_email=current_user.email,
+            user_role=current_user.role.value,
+            new_value={"comments": payload.comments, "new_status": document.status.value}
+        )
+        
         return {"message": "Document rejected", "status": document.status}
     except HTTPException as e:
         raise e
@@ -46,12 +71,24 @@ async def reject_document(
 async def return_document(
     id: uuid.UUID,
     payload: ActionRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_roles([RoleEnum.admin, RoleEnum.manager])),
     db: AsyncSession = Depends(get_db)
 ):
     """Return a document to Reviewer (Manager action at Stage 2)."""
     try:
         document = await WorkflowAgent.process_action(db, id, current_user.id, "return", payload.comments)
+        
+        await AuditService.log_action(
+            db=db,
+            action="workflow_return",
+            entity_type="Document",
+            entity_id=str(id),
+            user_id=current_user.id,
+            user_email=current_user.email,
+            user_role=current_user.role.value,
+            new_value={"comments": payload.comments, "new_status": document.status.value}
+        )
+        
         return {"message": "Document returned to reviewer", "status": document.status}
     except HTTPException as e:
         raise e

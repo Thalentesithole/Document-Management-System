@@ -8,8 +8,8 @@ from typing import Optional
 
 router = APIRouter()
 
-# Allow admins, approvers, and viewers to see reports
-REPORT_ROLES = [RoleEnum.admin, RoleEnum.manager, RoleEnum.viewer]
+# Allow admins and managers to see reports
+REPORT_ROLES = [RoleEnum.admin, RoleEnum.manager]
 
 @router.get("/spend-summary")
 async def spend_summary(

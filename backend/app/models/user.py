@@ -7,9 +7,7 @@ from sqlalchemy.dialects.postgresql import UUID
 class RoleEnum(str, enum.Enum):
     admin = "admin"
     reviewer = "reviewer"
-    approver = "approver"
     manager = "manager"
-    viewer = "viewer"
 
 class User(Base):
     __tablename__ = "users"

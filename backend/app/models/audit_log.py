@@ -9,6 +9,8 @@ class AuditLog(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    user_email = Column(String, nullable=True)
+    user_role = Column(String, nullable=True)
     action = Column(String, nullable=False) # upload, approve, login, etc.
     entity_type = Column(String, nullable=False) # Document, User, etc.
     entity_id = Column(String, nullable=False)

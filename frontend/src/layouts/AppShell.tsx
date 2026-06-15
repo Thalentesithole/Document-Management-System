@@ -11,21 +11,23 @@ import {
   ChevronLeft,
   User as UserIcon,
   BarChart3
+  Shield
 } from 'lucide-react'
 
-const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/upload', label: 'Upload', icon: Upload },
-  { to: '/documents', label: 'Documents', icon: FileText },
-  { to: '/reports', label: 'Reports', icon: BarChart3 },
-  { to: '/profile', label: 'Profile', icon: UserIcon },
-]
-
 export function AppShell() {
-  const { user, logout } = useAuth()
+  const { user, logout, isAdmin, isManager, isReviewer } = useAuth()
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  const navItems = [
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, show: true },
+    { to: '/upload', label: 'Upload', icon: Upload, show: isAdmin || isReviewer },
+    { to: '/documents', label: 'Documents', icon: FileText, show: true },
+    { to: '/reports', label: 'Reports', icon: BarChart3, show: isAdmin || isManager },
+    { to: '/profile', label: 'Profile', icon: UserIcon, show: true },
+    { to: '/audit-logs', label: 'Audit Logs', icon: Shield, show: isAdmin },
+  ].filter(item => item.show)
 
 
   const handleLogout = () => {

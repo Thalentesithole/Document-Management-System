@@ -9,10 +9,9 @@ import uuid
 
 class WorkflowAgent:
     """
-    3-Step Approval Workflow:
+    2-Step Approval Workflow:
       Stage 1 — Reviewer:  pending_review / duplicate_flagged / returned_to_reviewer
       Stage 2 — Manager:   pending_manager_approval
-      Stage 3 — Admin:     pending_final_approval
     """
 
     # Stage definitions: (allowed statuses, allowed roles, stage number)
@@ -24,13 +23,9 @@ class WorkflowAgent:
     STAGE_2_STATUSES = {
         DocumentStatusEnum.pending_manager_approval,
     }
-    STAGE_3_STATUSES = {
-        DocumentStatusEnum.pending_final_approval,
-    }
 
     STAGE_1_ROLES = {RoleEnum.reviewer, RoleEnum.admin}
     STAGE_2_ROLES = {RoleEnum.manager, RoleEnum.admin}
-    STAGE_3_ROLES = {RoleEnum.admin}
 
     @staticmethod
     async def process_action(
@@ -91,40 +86,12 @@ class WorkflowAgent:
                 )
             stage_number = 2
             if action == "approve":
-                document.status = DocumentStatusEnum.pending_final_approval
+                document.status = DocumentStatusEnum.approved
             elif action == "return":
                 document.status = DocumentStatusEnum.returned_to_reviewer
             else:
                 document.status = DocumentStatusEnum.rejected
 
-        # ===== STAGE 3: Finance / Admin =====
-        elif document.status in WorkflowAgent.STAGE_3_STATUSES:
-            if user.role not in WorkflowAgent.STAGE_3_ROLES:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Only Finance/Admin can perform final approval."
-                )
-            if action == "return":
-                raise HTTPException(
-                    status_code=400,
-                    detail="Return action is only available at Stage 2 (Manager)."
-                )
-            # Rule 5: Verify Manager approval exists before final approval
-            manager_approval = await db.execute(
-                select(ApprovalWorkflow).where(
-                    ApprovalWorkflow.document_id == document_id,
-                    ApprovalWorkflow.stage_number == 2,
-                    ApprovalWorkflow.action == "approve"
-                )
-            )
-            if not manager_approval.scalar_one_or_none():
-                raise HTTPException(
-                    status_code=400,
-                    detail="Manager approval is required before final approval."
-                )
-            stage_number = 3
-            if action == "approve":
-                document.status = DocumentStatusEnum.approved
             else:
                 document.status = DocumentStatusEnum.rejected
 

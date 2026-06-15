@@ -130,12 +130,6 @@ export default function Documents() {
       return { allowed: false, reason: 'Only users with the Manager or Admin role can perform Stage 2 approval.' }
     }
 
-    // Stage 3: Finance/Admin — pending_final_approval
-    if (doc.status === 'pending_final_approval') {
-      if (cleanRole === 'admin') {
-        return { allowed: true, stage: 3, canReturn: false }
-      }
-      return { allowed: false, reason: 'Only Finance/Admin can perform final approval.' }
     }
 
     return { allowed: false, reason: 'This document is not currently in an active approval stage.' }
@@ -432,7 +426,7 @@ export default function Documents() {
                         <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                           docDetail.status === 'pending_review' || docDetail.status === 'duplicate_flagged' || docDetail.status === 'returned_to_reviewer'
                             ? 'bg-amber-500 text-slate-950 ring-4 ring-amber-500/20'
-                            : ['pending_manager_approval', 'pending_final_approval', 'approved'].includes(docDetail.status)
+                            : ['pending_manager_approval', 'approved'].includes(docDetail.status)
                             ? 'bg-emerald-500 text-slate-950'
                             : 'bg-white/10 text-slate-400'
                         }`}>
@@ -449,7 +443,7 @@ export default function Documents() {
                         <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                           docDetail.status === 'pending_manager_approval'
                             ? 'bg-orange-500 text-slate-950 ring-4 ring-orange-500/20'
-                            : ['pending_final_approval', 'approved'].includes(docDetail.status)
+                            : docDetail.status === 'approved'
                             ? 'bg-emerald-500 text-slate-950'
                             : 'bg-white/10 text-slate-400'
                         }`}>
@@ -461,22 +455,6 @@ export default function Documents() {
                         </div>
                       </div>
 
-                      {/* Stage 3: Finance/Admin */}
-                      <div className="flex items-center gap-2.5">
-                        <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                          docDetail.status === 'pending_final_approval'
-                            ? 'bg-blue-500 text-slate-950 ring-4 ring-blue-500/20'
-                            : docDetail.status === 'approved'
-                            ? 'bg-emerald-500 text-slate-950'
-                            : 'bg-white/10 text-slate-400'
-                        }`}>
-                          3
-                        </div>
-                        <div className="flex-1 text-xs">
-                          <p className="font-semibold">Stage 3: Finance / Admin</p>
-                          <p className="text-[10px] text-slate-400">Final payment clearance</p>
-                        </div>
-                      </div>
                     </div>
                   </div>
 
@@ -536,7 +514,6 @@ export default function Documents() {
                       const stageNames: Record<number, string> = {
                         1: 'Reviewer',
                         2: 'Manager',
-                        3: 'Finance / Admin',
                       }
 
                       return (

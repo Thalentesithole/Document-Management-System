@@ -10,7 +10,7 @@ router = APIRouter()
 
 @router.get("/")
 async def get_insights(
-    current_user: User = Depends(require_roles([RoleEnum.admin, RoleEnum.manager, RoleEnum.viewer])),
+    current_user: User = Depends(require_roles([RoleEnum.admin, RoleEnum.manager])),
     db: AsyncSession = Depends(get_db)
 ):
     spend_data = await ReportingAgent.get_spend_summary(db)

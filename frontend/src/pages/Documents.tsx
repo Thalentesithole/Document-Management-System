@@ -130,7 +130,13 @@ export default function Documents() {
       return { allowed: false, reason: 'Only users with the Manager or Admin role can perform Stage 2 approval.' }
     }
 
-
+    // Stage 3: Finance / Admin — pending_final_approval
+    if (doc.status === 'pending_final_approval') {
+      if (cleanRole === 'admin') {
+        return { allowed: true, stage: 3, canReturn: false }
+      }
+      return { allowed: false, reason: 'Only Admins can perform final Stage 3 approval.' }
+    }
     return { allowed: false, reason: 'This document is not currently in an active approval stage.' }
   }
 
@@ -513,6 +519,7 @@ export default function Documents() {
                       const stageNames: Record<number, string> = {
                         1: 'Reviewer',
                         2: 'Manager',
+                        3: 'Finance / Admin',
                       }
 
                       return (

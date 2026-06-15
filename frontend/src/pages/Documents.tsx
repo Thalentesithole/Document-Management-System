@@ -130,7 +130,6 @@ export default function Documents() {
       return { allowed: false, reason: 'Only users with the Manager or Admin role can perform Stage 2 approval.' }
     }
 
-    }
 
     return { allowed: false, reason: 'This document is not currently in an active approval stage.' }
   }

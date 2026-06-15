@@ -10,7 +10,7 @@ import {
   X,
   ChevronLeft,
   User as UserIcon,
-  BarChart3
+  BarChart3,
   Shield
 } from 'lucide-react'
 

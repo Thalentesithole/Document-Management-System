@@ -92,9 +92,6 @@ class WorkflowAgent:
             else:
                 document.status = DocumentStatusEnum.rejected
 
-            else:
-                document.status = DocumentStatusEnum.rejected
-
         else:
             raise HTTPException(
                 status_code=400,

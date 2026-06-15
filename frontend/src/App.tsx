@@ -12,8 +12,6 @@ import ForgotPassword from '@/pages/ForgotPassword'
 import ResetPassword from '@/pages/ResetPassword'
 import Profile from '@/pages/Profile'
 import AccessDenied from '@/pages/AccessDenied'
-import AuditLogs from '@/pages/AuditLogs'
-
 import Reports from '@/pages/Reports'
 
 // Auth Context
@@ -28,13 +26,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-function RoleProtectedRoute({ children, allowedRoles }: { children: React.ReactNode, allowedRoles: string[] }) {
-  const { user, loading } = useAuth()
-  if (loading) return <div className="flex h-screen items-center justify-center text-white bg-slate-950">Loading...</div>
-  if (!user) return <Navigate to="/login" />
-  if (!allowedRoles.includes(user.role)) return <Navigate to="/access-denied" />
-  return <>{children}</>
-}
 
 function App() {
   return (
@@ -49,11 +40,10 @@ function App() {
             <Route path="/" element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
-              <Route path="upload" element={<RoleProtectedRoute allowedRoles={['admin', 'reviewer']}><Upload /></RoleProtectedRoute>} />
+              <Route path="upload" element={<Upload />} />
               <Route path="documents" element={<Documents />} />
-              <Route path="reports" element={<RoleProtectedRoute allowedRoles={['admin', 'manager']}><Reports /></RoleProtectedRoute>} />
+              <Route path="reports" element={<Reports />} />
               <Route path="profile" element={<Profile />} />
-              <Route path="audit-logs" element={<RoleProtectedRoute allowedRoles={['admin']}><AuditLogs /></RoleProtectedRoute>} />
             </Route>
             <Route path="/access-denied" element={<AccessDenied />} />
           </Routes>

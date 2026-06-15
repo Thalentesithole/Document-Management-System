@@ -10,23 +10,21 @@ import {
   X,
   ChevronLeft,
   User as UserIcon,
-  BarChart3,
-  Shield
+  BarChart3
 } from 'lucide-react'
 
 export function AppShell() {
-  const { user, logout, isAdmin, isManager, isReviewer } = useAuth()
+  const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const navItems = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, show: true },
-    { to: '/upload', label: 'Upload', icon: Upload, show: isAdmin || isReviewer },
+    { to: '/upload', label: 'Upload', icon: Upload, show: true },
     { to: '/documents', label: 'Documents', icon: FileText, show: true },
-    { to: '/reports', label: 'Reports', icon: BarChart3, show: isAdmin || isManager },
+    { to: '/reports', label: 'Reports', icon: BarChart3, show: true },
     { to: '/profile', label: 'Profile', icon: UserIcon, show: true },
-    { to: '/audit-logs', label: 'Audit Logs', icon: Shield, show: isAdmin },
   ].filter(item => item.show)
 
 

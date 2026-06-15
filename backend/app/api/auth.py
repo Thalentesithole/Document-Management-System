@@ -85,7 +85,7 @@ from app.models.user import User, PasswordResetToken
 from app.services.email import email_service
 from fastapi import Request
 
-from app.main import limiter
+from app.core.rate_limit import limiter
 
 @router.post("/forgot-password")
 @limiter.limit("5/hour")

@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.core.config import settings
+from app.core.rate_limit import limiter
 from app.api import auth, documents, workflow, reports, insights
 from app.tasks.celery_app import celery_app
 import sentry_sdk
@@ -14,8 +14,6 @@ if settings.SENTRY_DSN:
         profiles_sample_rate=1.0,
         environment=settings.ENVIRONMENT
     )
-
-limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

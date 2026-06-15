@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -8,7 +8,7 @@ from app.models.document import Document
 from app.api.deps import get_current_user, require_roles
 from app.services.storage import StorageService
 from app.services.audit import AuditService
-from app.tasks.extraction import process_document
+from app.tasks.extraction import extract_invoice_data_async
 import uuid
 import hashlib
 
@@ -16,6 +16,7 @@ router = APIRouter()
 
 @router.post("/upload")
 async def upload_document(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     current_user: User = Depends(require_roles([RoleEnum.admin, RoleEnum.reviewer])),
     db: AsyncSession = Depends(get_db)
@@ -131,7 +132,7 @@ async def upload_document(
     )
     
     # Trigger Extraction Agent
-    process_document.delay(str(document.id))
+    background_tasks.add_task(extract_invoice_data_async, str(document.id))
     
     return {"message": "Upload successful, extraction started", "document_id": document.id}
 

@@ -94,8 +94,8 @@ async def extract_invoice_data_async(document_id: str):
             await db.commit()
             
             # Trigger duplicate check
-            from app.tasks.duplicate import check_duplicates_task
-            check_duplicates_task.delay(str(document.id))
+            from app.tasks.duplicate import check_duplicates_async
+            await check_duplicates_async(str(document.id))
             
         except Exception as e:
             import traceback

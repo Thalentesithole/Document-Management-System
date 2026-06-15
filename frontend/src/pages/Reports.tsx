@@ -3,9 +3,9 @@ import { useQuery } from '@tanstack/react-query'
 import api from '@/services/api'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line
+  PieChart, Pie, Cell
 } from 'recharts'
-import { Download, FileSpreadsheet, FileText, Loader2, Filter, Search } from 'lucide-react'
+import { FileSpreadsheet, FileText, Loader2, Search } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -228,7 +228,7 @@ export default function Reports() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie data={statusData?.approval_status || []} dataKey="count" nameKey="status" cx="50%" cy="50%" innerRadius={80} outerRadius={120} paddingAngle={5}>
-                        {statusData?.approval_status?.map((entry: any, index: number) => (
+                        {statusData?.approval_status?.map((_: any, index: number) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>

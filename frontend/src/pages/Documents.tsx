@@ -176,14 +176,7 @@ export default function Documents() {
     }
   }
 
-  // ==========================================
-  // Step visualizer helpers
-  // ==========================================
-  const getStepState = (stepStatuses: string[], activeStatuses: string[], completedStatuses: string[], currentStatus: string) => {
-    if (activeStatuses.includes(currentStatus)) return 'active'
-    if (completedStatuses.includes(currentStatus)) return 'completed'
-    return 'pending'
-  }
+
 
   return (
     <div className="space-y-6">

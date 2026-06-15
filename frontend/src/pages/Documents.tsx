@@ -431,7 +431,7 @@ export default function Documents() {
                         <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                           docDetail.status === 'pending_review' || docDetail.status === 'duplicate_flagged' || docDetail.status === 'returned_to_reviewer'
                             ? 'bg-amber-500 text-slate-950 ring-4 ring-amber-500/20'
-                            : ['pending_manager_approval', 'approved'].includes(docDetail.status)
+                            : ['pending_manager_approval', 'pending_final_approval', 'approved'].includes(docDetail.status)
                             ? 'bg-emerald-500 text-slate-950'
                             : 'bg-white/10 text-slate-400'
                         }`}>
@@ -448,7 +448,7 @@ export default function Documents() {
                         <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                           docDetail.status === 'pending_manager_approval'
                             ? 'bg-orange-500 text-slate-950 ring-4 ring-orange-500/20'
-                            : docDetail.status === 'approved'
+                            : ['pending_final_approval', 'approved'].includes(docDetail.status)
                             ? 'bg-emerald-500 text-slate-950'
                             : 'bg-white/10 text-slate-400'
                         }`}>
@@ -457,6 +457,23 @@ export default function Documents() {
                         <div className="flex-1 text-xs">
                           <p className="font-semibold">Stage 2: Manager</p>
                           <p className="text-[10px] text-slate-400">Operational & business review</p>
+                        </div>
+                      </div>
+
+                      {/* Stage 3: Finance / Admin */}
+                      <div className="flex items-center gap-2.5">
+                        <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                          docDetail.status === 'pending_final_approval'
+                            ? 'bg-purple-500 text-slate-950 ring-4 ring-purple-500/20'
+                            : docDetail.status === 'approved'
+                            ? 'bg-emerald-500 text-slate-950'
+                            : 'bg-white/10 text-slate-400'
+                        }`}>
+                          3
+                        </div>
+                        <div className="flex-1 text-xs">
+                          <p className="font-semibold">Stage 3: Admin</p>
+                          <p className="text-[10px] text-slate-400">Final financial sign-off</p>
                         </div>
                       </div>
 
